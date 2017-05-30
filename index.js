@@ -1,8 +1,19 @@
 var get_request = require("request");
 var express = require('express');
 var app = express();
-
 var list;
+
+app.set('port', (process.env.PORT || 5000));
+
+app.use(express.static(__dirname + '/public'));
+
+// views is directory for all template files
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+
+app.get('/', function(request, response) {
+  response.render('pages/index');
+});
 
 app.get('/getDust/:cityname', function (req, res) {
   console.log('app.get: '+req.params.cityname);
@@ -16,13 +27,10 @@ app.get('/getDust/:cityname', function (req, res) {
   res.json(_list);
 });
 
-app.get('/', function(req, res) {
-  res.send('Hello Dust Server!');
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
 });
 
-app.listen(5000, function () {
-  console.log('Example app listening on port 5000!');
-});
 
 var fetch_options = {
     url: 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst?sidoName=%EC%84%9C%EC%9A%B8&searchCondition=DAILY&pageNo=1&numOfRows=1000&ServiceKey=fSjF%2BbianLiW4jHvdfbA01kU%2F3KswrUWX87iXUYtqDdkDWqv2W8FSEmVZTob203aERdrQ%2BxOZD7mmc1Q%2FTGwgQ%3D%3D&_returnType=json',
@@ -54,7 +62,7 @@ function startDustObserving() {
             triggerGetRequest();
             isTriggered = true;     
         }
-        setInterval(triggerGetRequest, 1000 * 60 * 60);
+        setInterval(triggerGetRequest, 1000 * 60 * 30);
     }
 
     get_request(fetch_options, fetch_callback);
