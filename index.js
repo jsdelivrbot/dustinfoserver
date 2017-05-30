@@ -17,7 +17,11 @@ app.get('/getDust/:cityname', function (req, res) {
   res.json(_list);
 });
 
-app.listen(3000, function () {
+app.get('/', function(req, res) {
+  res.send('Hello Dust Server!');
+});
+
+app.listen(5000, function () {
   console.log('Example app listening on port 3000!');
 });
 
@@ -30,11 +34,12 @@ function fetch_callback(error, response, body) {
       //console.log(body);
       var info = JSON.parse(body);
       list = info.list;
-      var cityName = list[0].cityName;  
-      var dataTime = list[0].dataTime;
-      var pm10Value = list[0].pm10Value;
-      var pm25Value = list[0].pm25Value;
-      console.log(cityName+' '+dataTime+' PM10: '+pm10Value+' PM2.5: '+pm25Value);
+
+      //var cityName = list[0].cityName;  
+      //var dataTime = list[0].dataTime;
+      //var pm10Value = list[0].pm10Value;
+      //var pm25Value = list[0].pm25Value;
+      console.log('Save List : ' + new Date());
     }
 }
 
@@ -60,16 +65,16 @@ function startDustObserving() {
 
     if (nextDate.getMinutes() === 0) {
         callEveryHour();
-    } else if (nextDate.getMinutes() < 20) {
+    } else if (nextDate.getMinutes() < 10) {
         nextDate.setHours(d.getHours());
-        nextDate.setMinutes(5);
+        nextDate.setMinutes(10);
         nextDate.setSeconds(0);
         var difference = nextDate - new Date();
         setTimeout(callEveryHour, difference);
     }
     else {
         nextDate.setHours(d.getHours() + 1);
-        nextDate.setMinutes(5);
+        nextDate.setMinutes(10);
         nextDate.setSeconds(0);
         var difference = nextDate - new Date();
         setTimeout(callEveryHour, difference);
