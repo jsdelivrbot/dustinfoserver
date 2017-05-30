@@ -1,15 +1,35 @@
-var badDustContition = 80;
 var get_request = require("request");
 
+var express = require('express');
+var app = express();
+
+var list;
+
+app.get('/getDust/:cityname', function (req, res) {
+  console.log('app.get: '+req.params.cityname);
+
+  var _list = new Array();
+  for(var i in list) {
+      if(list[i].cityName == req.params.cityname) {
+        _list.push(list[i]);
+      }
+  }
+  res.json(_list);
+});
+
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!');
+});
+
 var fetch_options = {
-    url: 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst?sidoName=%EC%84%9C%EC%9A%B8&searchCondition=DAILY&pageNo=1&numOfRows=10&ServiceKey=fSjF%2BbianLiW4jHvdfbA01kU%2F3KswrUWX87iXUYtqDdkDWqv2W8FSEmVZTob203aERdrQ%2BxOZD7mmc1Q%2FTGwgQ%3D%3D&_returnType=json',
+    url: 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst?sidoName=%EC%84%9C%EC%9A%B8&searchCondition=DAILY&pageNo=1&numOfRows=1000&ServiceKey=fSjF%2BbianLiW4jHvdfbA01kU%2F3KswrUWX87iXUYtqDdkDWqv2W8FSEmVZTob203aERdrQ%2BxOZD7mmc1Q%2FTGwgQ%3D%3D&_returnType=json',
 }
 
 function fetch_callback(error, response, body) {
     if (!error && response.statusCode == 200) {
       //console.log(body);
       var info = JSON.parse(body);
-      var list = info.list;
+      list = info.list;
       var cityName = list[0].cityName;  
       var dataTime = list[0].dataTime;
       var pm10Value = list[0].pm10Value;
