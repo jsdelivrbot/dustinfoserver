@@ -16,22 +16,40 @@ app.get('/', function(req, res) {
   res.json({msg: 'OK' });
 });
 
+app.get('/getDust/:update', function (req, res) {
+  console.log('app.get: update');
+  get_full_request();
+  res.json({msg: 'UPDATE OK' });
+});
+
 app.get('/getDust/sido/:sidoname', function (req, res) {
   console.log('app.get: '+req.params.sidoname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
-  res.json(list[indexOfsidoName]);
+  if(!list[0]) {
+    console.log('list is null. need to update');
+    get_full_request();
+    res.json({msg: 'RETRY REQUEST'})
+  } else {
+    res.json(list[indexOfsidoName]);
+  }
 });
 
 app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
   console.log('app.get: '+req.params.sidoname+' - '+req.params.cityname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
-  for(var i in list[indexOfsidoName]) {
-      if(list[indexOfsidoName][i].cityName == req.params.cityname) {
-        _list.push(list[indexOfsidoName][i]);
-      }
+  if(!list[0]) {
+    console.log('list is null. need to update');
+    get_full_request();
+    res.json({msg: 'RETRY REQUEST'})
+  } else {
+    for(var i in list[indexOfsidoName]) {
+        if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+          _list.push(list[indexOfsidoName][i]);
+        }
+    }
+    res.json(_list);
   }
-  res.json(_list);
 });
 
 app.listen(app.get('port'), function() {
@@ -80,7 +98,6 @@ function startDustObserving() {
     var isTriggered = false;
 
     function triggerGetRequest() {
-        //get_request(fetch_options, fetch_callback);
         get_full_request();
     }
 
@@ -92,7 +109,6 @@ function startDustObserving() {
         setInterval(triggerGetRequest, 1000 * 60 * 60);
     }
 
-    //get_request(fetch_options[7], fetch_callback);
     get_full_request();
 
     var nextDate = new Date();
