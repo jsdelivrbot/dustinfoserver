@@ -28,7 +28,7 @@ app.get('/getDust/sido/:sidoname', function (req, res) {
   if(!list[0]) {
     console.log('list is null. need to update');
     get_full_request();
-    res.json({msg: 'RETRY REQUEST'})
+    res.json([{msg: 'RETRY REQUEST'}])
   } else {
     res.json(list[indexOfsidoName]);
   }
@@ -41,7 +41,7 @@ app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
   if(!list[0]) {
     console.log('list is null. need to update');
     get_full_request();
-    res.json({msg: 'RETRY REQUEST'})
+    res.json([{msg: 'RETRY REQUEST'}])
   } else {
     for(var i in list[indexOfsidoName]) {
         if(list[indexOfsidoName][i].cityName == req.params.cityname) {
