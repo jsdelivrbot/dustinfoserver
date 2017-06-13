@@ -52,6 +52,33 @@ app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
   }
 });
 
+app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
+  console.log('app.get: '+req.params.sidoname+' - '+req.params.cityname+' - '+req.params.index);
+  var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
+  var _list = new Array();
+  var __list = new Array();
+  if(req.params.index>24) {
+    req.params.index = 24;
+  }
+
+  if(!list[0]) {
+    console.log('list is null. need to update');
+    get_full_request();
+    res.json([{msg: 'RETRY REQUEST'}])
+  } else {
+    for(var i in list[indexOfsidoName]) {
+        if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+          _list.push(list[indexOfsidoName][i]);
+        }
+    }
+    for(var i=0; i < req.params.index; i++) {
+      //console.log(i+ " Json "+ _list[i]);
+      __list.push(_list[i]);
+    }
+    res.json(__list);
+  }
+});
+
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
