@@ -18,7 +18,7 @@ app.get('/', function(req, res) {
 
 app.get('/getDust/:update', function (req, res) {
   console.log('app.get: update');
-  get_full_request();
+  full_dust_request();
   res.json({msg: 'UPDATE OK' });
 });
 
@@ -27,7 +27,7 @@ app.get('/getDust/sido/:sidoname', function (req, res) {
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   if(!list[0]) {
     console.log('list is null. need to update');
-    get_full_request();
+    full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
   } else {
     res.json(list[indexOfsidoName]);
@@ -40,7 +40,7 @@ app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
   var _list = new Array();
   if(!list[0]) {
     console.log('list is null. need to update');
-    get_full_request();
+    full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
   } else {
     for(var i in list[indexOfsidoName]) {
@@ -63,7 +63,7 @@ app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
 
   if(!list[0]) {
     console.log('list is null. need to update');
-    get_full_request();
+    full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
   } else {
     for(var i in list[indexOfsidoName]) {
@@ -103,7 +103,7 @@ var get_url = function (i) {
 
 function full_dust_request () {
   for(var i in sidoList) {
-    //console.log('get_full_request:' + i);
+    //console.log('full_dust_request:' + i);
     request(get_url(i), fetch_callback);
   }
 }
