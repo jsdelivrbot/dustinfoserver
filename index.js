@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 var list = new Array(17);
 var sidoList = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '세종'];
+var update_state = 0;
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -25,10 +26,14 @@ app.get('/getDust/:update', function (req, res) {
 app.get('/getDust/sido/:sidoname', function (req, res) {
   console.log('app.get: '+req.params.sidoname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
+
   if(!list[0]) {
     console.log('list is null. need to update');
     full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
+  } else if(update_state != 17) {
+    console.log('update not complete update_state :' + update_state);
+    res.json([{msg: 'SERVER UPDATING'}])
   } else {
     res.json(list[indexOfsidoName]);
   }
@@ -42,6 +47,9 @@ app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
     console.log('list is null. need to update');
     full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
+  }  else if(update_state != 17) {
+    console.log('update not complete update_state :' + update_state);
+    res.json([{msg: 'SERVER UPDATING'}])
   } else {
     for(var i in list[indexOfsidoName]) {
         if(list[indexOfsidoName][i].cityName == req.params.cityname) {
@@ -57,7 +65,7 @@ app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
   var __list = new Array();
-  if(req.params.index>24) {
+  if(req.params.index > 24) {
     req.params.index = 24;
   }
 
@@ -65,6 +73,9 @@ app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
     console.log('list is null. need to update');
     full_dust_request();
     res.json([{msg: 'RETRY REQUEST'}])
+  }  else if(update_state != 17) {
+    console.log('update not complete update_state :' + update_state);
+    res.json([{msg: 'SERVER UPDATING'}])
   } else {
     for(var i in list[indexOfsidoName]) {
         if(list[indexOfsidoName][i].cityName == req.params.cityname) {
@@ -92,6 +103,7 @@ function fetch_callback(error, response, body) {
       //console.log(info.list[0].sidoName +" - "+indexOfsidoName);
       list[indexOfsidoName] = info.list;
       //console.log('Save List : '+ list[0][0].sidoName);
+      update_state ++;
     }
 }
 
@@ -102,6 +114,7 @@ var get_url = function (i) {
 }
 
 function full_dust_request () {
+  update_state = 0;
   for(var i in sidoList) {
     //console.log('full_dust_request:' + i);
     request(get_url(i), fetch_callback);
@@ -128,18 +141,18 @@ function startDustObserving() {
     var nextDate = new Date();
     var d = nextDate;
 
-    if (nextDate.getMinutes() === 30) {
+    if (nextDate.getMinutes() === 35) {
         callEveryHour();
-    } else if (nextDate.getMinutes() < 30) {
+    } else if (nextDate.getMinutes() < 35) {
         nextDate.setHours(d.getHours());
-        nextDate.setMinutes(30);
+        nextDate.setMinutes(35);
         nextDate.setSeconds(0);
         var difference = nextDate - new Date();
         setTimeout(callEveryHour, difference);
     }
     else {
         nextDate.setHours(d.getHours() + 1);
-        nextDate.setMinutes(30);
+        nextDate.setMinutes(35);
         nextDate.setSeconds(0);
         var difference = nextDate - new Date();
         setTimeout(callEveryHour, difference);
