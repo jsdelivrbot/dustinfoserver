@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 var list = new Array(17);
 var sidoList = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '세종'];
+var updatedTime;
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -26,6 +27,8 @@ app.get('/getDust/sido/:sidoname', function (req, res) {
   console.log('app.get: '+req.params.sidoname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
 
+  check_data_up_to_date();
+
   if(!list[0]) {
     console.log('list is null. need to update');
     full_dust_request();
@@ -39,6 +42,9 @@ app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
   console.log('app.get: '+req.params.sidoname+' - '+req.params.cityname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
+
+  check_data_up_to_date();
+
   if(!list[0]) {
     console.log('list is null. need to update');
     full_dust_request();
@@ -58,6 +64,9 @@ app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
   var __list = new Array();
+
+  check_data_up_to_date();
+
   if(req.params.index > 24) {
     req.params.index = 24;
   }
@@ -84,6 +93,18 @@ app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
 
+function check_data_up_to_date () {
+  var difference = new Date() - updatedTime;
+  if(difference > 3660000) { //61 m
+    console.log('check_data_up_to_date need to update difference:'+ difference );
+    full_dust_request();
+  }
+
+  //console.log('updatedTime: h:' +updatedTime.getHours() + ' m:'+ updatedTime.getMinutes()+
+  // ' new Date h:'+ new Date().getHours()+' m:'+new Date().getMinutes() +
+  //' difference:'+difference);
+}
+
 function fetch_callback(error, response, body) {
     if (!error && response.statusCode == 200) {
       //console.log(body);
@@ -103,6 +124,8 @@ var get_url = function (i) {
 }
 
 function full_dust_request () {
+  console.log('full_dust_request h:'+ new Date().getHours()+' m:'+new Date().getMinutes());
+  updatedTime = new Date();
   for(var i in sidoList) {
     //console.log('full_dust_request:' + i);
     request(get_url(i), fetch_callback);
