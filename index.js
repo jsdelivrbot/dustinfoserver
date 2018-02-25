@@ -7,84 +7,134 @@ var updatedTime;
 
 app.set('port', (process.env.PORT || 5000));
 
-app.use(express.static(__dirname + '/public'));
-
-// views is directory for all template files
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-
 app.get('/', function(req, res) {
   res.json({msg: 'OK' });
 });
 
-app.get('/getDust/:update', function (req, res) {
-  console.log('app.get: update');
-  full_dust_request();
-  res.json({msg: 'UPDATE OK' });
-});
-
-app.get('/getDust/sido/:sidoname', function (req, res) {
+app.get('/getDust/:sidoname', function (req, res) {
   console.log('app.get: '+req.params.sidoname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
 
-  check_data_up_to_date();
-
-  if(!list[0]) {
-    console.log('list is null. need to update');
-    full_dust_request();
-    res.json([{msg: 'RETRY REQUEST'}])
+  //데이터가 없거나 시간 차가 1시간 35분 이상일때
+  if(!list[indexOfsidoName] || getDiffTime(list[indexOfsidoName][0].dataTime) >= 5700000) {
+    console.log('Need To Update Data');
+    request(get_url(sidoList.indexOf(req.params.sidoname)), function (error, response, body) {
+      var info;
+      if (!error && response.statusCode === 200) {
+        try {
+          var info = JSON.parse(body);
+          var indexOfsidoName = sidoList.indexOf(info.list[0].sidoName);
+          list[indexOfsidoName] = info.list;
+          console.log('Save List : '+ info.list[0].sidoName);
+        } catch (e) {
+          console.log("JSON.parse exception:");
+        }
+      }
+      res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
+      res.json(list[indexOfsidoName]);
+    });
   } else {
+    //시간 차가 1시간 35분 미만일때 서버 데이터 리턴
+    res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
     res.json(list[indexOfsidoName]);
   }
 });
 
-app.get('/getDust/sido/:sidoname/:cityname', function (req, res) {
+app.get('/getDust/:sidoname/:cityname', function (req, res) {
   console.log('app.get: '+req.params.sidoname+' - '+req.params.cityname);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
-
-  check_data_up_to_date();
-
-  if(!list[0]) {
-    console.log('list is null. need to update');
-    full_dust_request();
-    res.json([{msg: 'RETRY REQUEST'}])
-  } else {
-    for(var i in list[indexOfsidoName]) {
-        if(list[indexOfsidoName][i].cityName == req.params.cityname) {
-          _list.push(list[indexOfsidoName][i]);
+  
+  //데이터가 없거나 시간 차가 1시간 35분 이상일때
+  if(!list[indexOfsidoName] || getDiffTime(list[indexOfsidoName][0].dataTime) >= 5700000) {
+    console.log('Need To Update Data');
+    request(get_url(sidoList.indexOf(req.params.sidoname)), function (error, response, body) {
+      var info;
+      if (!error && response.statusCode === 200) {
+        try {
+          var info = JSON.parse(body);
+          var indexOfsidoName = sidoList.indexOf(info.list[0].sidoName);
+          list[indexOfsidoName] = info.list;
+          console.log('Save List : '+ info.list[0].sidoName);
+        } catch (e) {
+          console.log("JSON.parse exception:");
         }
+      }
+
+      for(var i in list[indexOfsidoName]) {
+          if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+            _list.push(list[indexOfsidoName][i]);
+          }
+      }
+      res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
+      res.json(_list);
+    });
+  } else {
+    //시간 차가 1시간 35분 미만일때 서버 데이터 리턴
+    for(var i in list[indexOfsidoName]) {
+      if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+        _list.push(list[indexOfsidoName][i]);
+      }
     }
+    res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
     res.json(_list);
   }
 });
 
-app.get('/getDust/sido/:sidoname/:cityname/:index', function (req, res) {
+app.get('/getDust/:sidoname/:cityname/:index', function (req, res) {
   console.log('app.get: '+req.params.sidoname+' - '+req.params.cityname+' - '+req.params.index);
   var indexOfsidoName = sidoList.indexOf(req.params.sidoname);
   var _list = new Array();
   var __list = new Array();
 
-  check_data_up_to_date();
-
   if(req.params.index > 24) {
     req.params.index = 24;
   }
 
-  if(!list[0]) {
-    console.log('list is null. need to update');
-    full_dust_request();
-    res.json([{msg: 'RETRY REQUEST'}])
-  } else {
-    for(var i in list[indexOfsidoName]) {
-        if(list[indexOfsidoName][i].cityName == req.params.cityname) {
-          _list.push(list[indexOfsidoName][i]);
+  //데이터가 없거나 시간 차가 1시간 35분 이상일때
+  if(!list[indexOfsidoName] || getDiffTime(list[indexOfsidoName][0].dataTime) >= 5700000) {
+    console.log('Need To Update Data');
+    request(get_url(sidoList.indexOf(req.params.sidoname)), function (error, response, body) {
+      var info;
+      if (!error && response.statusCode === 200) {
+        try {
+          var info = JSON.parse(body);
+          var indexOfsidoName = sidoList.indexOf(info.list[0].sidoName);
+          list[indexOfsidoName] = info.list;
+          console.log('Save List : '+ info.list[0].sidoName);
+        } catch (e) {
+          console.log("JSON.parse exception:");
         }
+      }
+
+      for(var i in list[indexOfsidoName]) {
+          if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+            _list.push(list[indexOfsidoName][i]);
+          }
+      }
+
+      for(var i=0; i < req.params.index; i++) {
+        //console.log(i+ " Json "+ _list[i]);
+        __list.push(_list[i]);
+      }
+      
+      res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
+      res.json(__list);
+    });
+  } else {
+    //시간 차가 1시간 35분 미만일때 서버 데이터 리턴
+    for(var i in list[indexOfsidoName]) {
+      if(list[indexOfsidoName][i].cityName == req.params.cityname) {
+        _list.push(list[indexOfsidoName][i]);
+      }
     }
+
     for(var i=0; i < req.params.index; i++) {
       //console.log(i+ " Json "+ _list[i]);
       __list.push(_list[i]);
     }
+
+    res.set('Cache-Control', 'public, max-age=1, s-maxage='+getCacheTime(list[indexOfsidoName][0].dataTime));
     res.json(__list);
   }
 });
@@ -93,81 +143,26 @@ app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
 
-function check_data_up_to_date () {
-  var difference = new Date() - updatedTime;
-  if(difference > 3660000) { //61 m
-    console.log('check_data_up_to_date need to update difference:'+ difference );
-    full_dust_request();
-  }
-
-  //console.log('updatedTime: h:' +updatedTime.getHours() + ' m:'+ updatedTime.getMinutes()+
-  // ' new Date h:'+ new Date().getHours()+' m:'+new Date().getMinutes() +
-  //' difference:'+difference);
-}
-
-function fetch_callback(error, response, body) {
-    if (!error && response.statusCode == 200) {
-      //console.log(body);
-      var info = JSON.parse(body);
-      //console.log('Retuen : '  + info);
-      var indexOfsidoName = sidoList.indexOf(info.list[0].sidoName);
-      //console.log(info.list[0].sidoName +" - "+indexOfsidoName);
-      list[indexOfsidoName] = info.list;
-      //console.log('Save List : '+ list[0][0].sidoName);
-    }
-}
-
 var get_url = function (i) {
   var url = 'http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc/getCtprvnMesureSidoLIst?sidoName=';
   var url_option = '&searchCondition=DAILY&pageNo=1&numOfRows=1000&ServiceKey=fSjF%2BbianLiW4jHvdfbA01kU%2F3KswrUWX87iXUYtqDdkDWqv2W8FSEmVZTob203aERdrQ%2BxOZD7mmc1Q%2FTGwgQ%3D%3D&_returnType=json';
   return url+encodeURI(sidoList[i])+url_option;
 }
 
-function full_dust_request () {
-  console.log('full_dust_request h:'+ new Date().getHours()+' m:'+new Date().getMinutes());
-  updatedTime = new Date();
-  for(var i in sidoList) {
-    //console.log('full_dust_request:' + i);
-    request(get_url(i), fetch_callback);
-  }
+var getDiffTime = function (dataime) {
+  var savedtime = new Date(dataime);
+  //savedtime.setHours(savedtime.getHours() - 9); //utc 시간으로 보정
+  var difference =  new Date() - savedtime;
+  console.log('difference(m) : ' + Math.floor(difference/60000));
+  return difference;
 }
 
-function startDustObserving() {
-    var isTriggered = false;
-
-    function triggerGetRequest() {
-        full_dust_request();
-    }
-
-    function callEveryHour() {
-        if (isTriggered == false) {
-            triggerGetRequest();
-            isTriggered = true;     
-        }
-        setInterval(triggerGetRequest, 1000 * 60 * 60);
-    }
-
-    full_dust_request();
-
-    var nextDate = new Date();
-    var d = nextDate;
-
-    if (nextDate.getMinutes() === 35) {
-        callEveryHour();
-    } else if (nextDate.getMinutes() < 35) {
-        nextDate.setHours(d.getHours());
-        nextDate.setMinutes(35);
-        nextDate.setSeconds(0);
-        var difference = nextDate - new Date();
-        setTimeout(callEveryHour, difference);
-    }
-    else {
-        nextDate.setHours(d.getHours() + 1);
-        nextDate.setMinutes(35);
-        nextDate.setSeconds(0);
-        var difference = nextDate - new Date();
-        setTimeout(callEveryHour, difference);
-    }
+var getCacheTime = function (datetime) {
+  var nextUpdateTime = new Date(datetime);
+  //nextUpdateTime.setHours(nextUpdateTime.getHours() - 9); //utc 시간으로 보정
+  nextUpdateTime.setHours(nextUpdateTime.getHours() + 1); //다음업데이트 시간
+  nextUpdateTime.setMinutes(nextUpdateTime.getMinutes() + 36); //다음 업데이트 시간
+  var cacheTime =  Math.floor((nextUpdateTime - new Date())/1000); //다음 업데이트 남은 분
+  console.log('Cache Time : ' + cacheTime + '(s), Cache Time(m) : ' + Math.floor(cacheTime/60) + "(m)");
+  return cacheTime;
 }
-
-startDustObserving();
