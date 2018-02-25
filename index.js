@@ -151,7 +151,7 @@ var get_url = function (i) {
 
 var getDiffTime = function (dataime) {
   var savedtime = new Date(dataime);
-  //savedtime.setHours(savedtime.getHours() - 9); //utc 시간으로 보정
+  savedtime.setHours(savedtime.getHours() - 9); //utc 시간으로 보정
   var difference =  new Date() - savedtime;
   console.log('difference(m) : ' + Math.floor(difference/60000));
   return difference;
@@ -159,7 +159,7 @@ var getDiffTime = function (dataime) {
 
 var getCacheTime = function (datetime) {
   var nextUpdateTime = new Date(datetime);
-  //nextUpdateTime.setHours(nextUpdateTime.getHours() - 9); //utc 시간으로 보정
+  nextUpdateTime.setHours(nextUpdateTime.getHours() - 9); //utc 시간으로 보정
   nextUpdateTime.setHours(nextUpdateTime.getHours() + 1); //다음업데이트 시간
   nextUpdateTime.setMinutes(nextUpdateTime.getMinutes() + 36); //다음 업데이트 시간
   var cacheTime =  Math.floor((nextUpdateTime - new Date())/1000); //다음 업데이트 남은 분
